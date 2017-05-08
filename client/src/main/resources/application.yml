@@ -11,6 +11,8 @@ config:
         clientID: client1
         clientSecret: secret
         grantType: client_credentials
-        accessTokenUri: http://localhost:8081/oauth/token
-        userAuthorizationUri: http://localhost:8081/oauth/authorize
+        #accessTokenUri: http://localhost:8081/oauth/token
+        #userAuthorizationUri: http://localhost:8081/oauth/authorize
+        accessTokenUri: https://localhost:8443/oauth/token
+        userAuthorizationUri: https://localhost:8443/oauth/authorize
         resourceURI: http://localhost:8082/api/

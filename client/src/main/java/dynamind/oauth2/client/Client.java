@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.web.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -15,64 +16,110 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 import org.springframework.security.oauth2.client.token.grant.code.AuthorizationCodeResourceDetails;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableOAuth2Client;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import java.security.cert.CertificateException;
 
 @SpringBootApplication
 @EnableOAuth2Client
 public class Client extends SpringBootServletInitializer {
 
-    private static final Logger log = LoggerFactory.getLogger(Client.class);
+	private static final Logger log = LoggerFactory.getLogger(Client.class);
 
-    @Value("${config.oauth2.accessTokenUri}")
-    private String accessTokenUri;
+	@Value("${config.oauth2.accessTokenUri}")
+	private String accessTokenUri;
 
-    @Value("${config.oauth2.userAuthorizationUri}")
-    private String userAuthorizationUri;
+	@Value("${config.oauth2.userAuthorizationUri}")
+	private String userAuthorizationUri;
 
-    @Value("${config.oauth2.clientID}")
-    private String clientID;
+	@Value("${config.oauth2.clientID}")
+	private String clientID;
 
-    @Value("${config.oauth2.clientSecret}")
-    private String clientSecret;
-    
-    @Value("${config.oauth2.grantType}")
-    private String grantType;
+	@Value("${config.oauth2.clientSecret}")
+	private String clientSecret;
 
-    public static void main(String[] args) {
-        SpringApplication.run(Client.class, args);
-    }
+	@Value("${config.oauth2.grantType}")
+	private String grantType;
 
-    /**
-     * An opinionated WebApplicationInitializer to run a SpringApplication from a traditional WAR deployment.
-     * Binds Servlet, Filter and ServletContextInitializer beans from the application context to the servlet container.
-     *
-     * @link http://docs.spring.io/spring-boot/docs/current/api/index.html?org/springframework/boot/context/web/SpringBootServletInitializer.html
-     */
-    @Override
-    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(Client.class);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(Client.class, args);
+	}
 
-    /**
-     * The heart of our interaction with the resource; handles redirection for authentication, access tokens, etc.
-     * @param oauth2ClientContext
-     * @return
-     */
-    @Bean
-    public OAuth2RestOperations restTemplate(OAuth2ClientContext oauth2ClientContext) {
-        return new OAuth2RestTemplate(resource(), oauth2ClientContext);
-    }
+	/*public static void trustSelfSignedSSL() {
+		try {
+			final SSLContext ctx = SSLContext.getInstance("TLS");
+			final X509TrustManager tm = new X509TrustManager() {
+				public void checkClientTrusted(final X509Certificate[] xcs,
+						final String string) throws CertificateException {
+					// do nothing
+				}
 
-    private OAuth2ProtectedResourceDetails resource() {
-        AuthorizationCodeResourceDetails resource = new AuthorizationCodeResourceDetails();
-        resource.setClientId(clientID);
-        resource.setClientSecret(clientSecret);
-        resource.setAccessTokenUri(accessTokenUri);
-        resource.setUserAuthorizationUri(userAuthorizationUri);
-        resource.setScope(Arrays.asList("read"));
-      //  resource.setGrantType(grantType);
+				public void checkServerTrusted(final X509Certificate[] xcs,
+						final String string) throws CertificateException {
+					// do nothing
+				}
 
-        return resource;
-    }
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
+			};
+			ctx.init(null, new TrustManager[] { tm }, null);
+			SSLContext.setDefault(ctx);
+		} catch (final Exception ex) {
+			ex.printStackTrace();
+		}
+	}*/
+
+	/**
+	 * An opinionated WebApplicationInitializer to run a SpringApplication from
+	 * a traditional WAR deployment. Binds Servlet, Filter and
+	 * ServletContextInitializer beans from the application context to the
+	 * servlet container.
+	 * 
+	 * @link http://docs.spring.io/spring-boot/docs/current/api/index.html?org/
+	 *       springframework/boot/context/web/SpringBootServletInitializer.html
+	 */
+	@Override
+	protected SpringApplicationBuilder configure(
+			SpringApplicationBuilder application) {
+		return application.sources(Client.class);
+	}
+
+	/**
+	 * The heart of our interaction with the resource; handles redirection for
+	 * authentication, access tokens, etc.
+	 * 
+	 * @param oauth2ClientContext
+	 * @return
+	 */
+	@Bean
+	// public OAuth2RestOperations restTemplate(OAuth2ClientContext
+	// oauth2ClientContext) {
+	public OAuth2RestTemplate restTemplate(
+			OAuth2ClientContext oauth2ClientContext) {
+		return new OAuth2RestTemplate(resource(), oauth2ClientContext);
+	}
+
+	private OAuth2ProtectedResourceDetails resource() {
+		AuthorizationCodeResourceDetails resource = new AuthorizationCodeResourceDetails();
+		resource.setClientId(clientID);
+		resource.setClientSecret(clientSecret);
+		resource.setAccessTokenUri(accessTokenUri);
+		resource.setUserAuthorizationUri(userAuthorizationUri);
+		resource.setScope(Arrays.asList("read"));
+		// resource.setGrantType(grantType);
+
+		return resource;
+	}
 
 }
+
